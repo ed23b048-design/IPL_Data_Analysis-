@@ -1,1 +1,1 @@
-# IPL_Data_Analysis-
+We are analysing the data for the very popular sport in India, Cricket and the league associated with it knon as IPL. We will be analysing the data in different domains to get an overview for the IPL happening in each season.
