@@ -1,0 +1,110 @@
+import streamlit as st
+import pandas as pd
+
+data=pd.read_csv("deliveries.csv")
+matches=pd.read_csv("matches.csv")
+
+# making group by the batsman
+batter=data.groupby("batter")
+
+# making group by the bowlers
+bowler=data.groupby("bowler")
+
+# to find out the ipl player having most runs
+def batsman_info(name):
+    st.write(f"Total Runs in History of IPL : {batter.get_group(name)["total_runs"].sum()}")
+
+# no of sixes in the whole season for a player
+def batsman_sixes(player):
+    mask1=data["batter"]==player
+    mask2=data["batsman_runs"]==6
+    st.write(f"Total Sixes in History of IPL : {data[mask1 & mask2]["batsman_runs"].sum()//6}")
+
+# no of fours in the whole season for a player
+def batsman_fours(player):
+    mask1=data["batter"]==player
+    mask2=data["batsman_runs"]==4
+    st.write(f"Total Fours in History of IPL : {data[mask1 & mask2]["batsman_runs"].sum()//4}")
+
+# no of sixes in the death over
+def sixes_in_death_over(player):
+    bat=batter.get_group(player)
+    ma1=bat["over"]>15
+    ma2=bat["batsman_runs"]==6
+    st.write(f"Total Sixes in the death over in the history of IPL : {bat[ma1 & ma2]["batsman_runs"].sum()//6}")
+
+# no of runs batter made against a team
+def bat_against_team(player,team):
+    bat_data=batter.get_group(player)
+    ma1=bat_data["batter"]==player
+    ma2=bat_data["bowling_team"]==team
+
+    st.write(f"{player} scored {bat_data[ma1 & ma2]['batsman_runs'].sum()} runs against {team}")
+
+# no of wickets a bowler took against a team
+def bowler_against_team(player,team):
+    bowl_data=bowler.get_group(player)
+    ma1=bowl_data["is_wicket"]==1
+    ma2=bowl_data["batting_team"]==team
+
+    st.write(f"{player} has taken {bowl_data[ma1 & ma2]["is_wicket"].sum()} wickets against {team}")
+
+
+# Bowler wickets in the whole of ipl
+def bowler_info(player):
+    st.write(f"Total Wickets in History of IPL : {(bowler.get_group(player)["is_wicket"]==1).sum()}")
+
+# Season wise winner
+
+def season_wise_winner():
+    st.subheader("IPL Winner Counts")
+    st.dataframe(matches[matches["match_type"]=="Final"]["winner"].value_counts().reset_index())
+
+
+# Web Application part
+
+st.image("IPL.png", width = 3000)
+st.audio("ipl_audio.mp3")
+st.title("IPL Analysis upto 2024")
+
+st.header("Hello Come for the Analysis")
+
+opt=st.selectbox("Select an option",["None","Team wise Analysis","Batsman wise Analysis","Bowler wise Analysis"
+    ,"Rivalry Analysis","Player of the match Analysis"])
+
+if opt=="Team wise Analysis":
+    season_wise_winner()
+
+
+if opt=="Batsman wise Analysis":
+    batsman=st.selectbox("Select the batsman",data["batter"].unique())
+    batsman_info(batsman)
+    batsman_sixes(batsman)
+    batsman_fours(batsman)
+    sixes_in_death_over(batsman)
+
+if opt=="Bowler wise Analysis":
+    bowl=st.selectbox("Select the bowler",data["bowler"].unique())
+    bowler_info(bowl)
+
+if opt=="Player of the match Analysis":
+    st.subheader("Player of Match Counts")
+    st.dataframe(matches["player_of_match"].value_counts().reset_index(drop=False))
+
+
+if opt=="Rivalry Analysis":
+    radio=st.radio("Select an Option",["Batsman","Bowler"])
+
+    if radio=="Batsman":
+        batsman=st.selectbox("Select the batsman",data["batter"].unique())
+        st.subheader("V/S")
+        team=st.selectbox("Select team",data["bowling_team"].unique())
+        bat_against_team(batsman,team)
+
+    if radio=="Bowler":
+        bowl=st.selectbox("Select the bowler",data["bowler"].unique())
+        st.subheader("V/S")
+        team=st.selectbox("Select team",data["batting_team"].unique())
+        bowler_against_team(bowl,team)
+
+# for running the website write the command "streamlit run "file_name".py"
